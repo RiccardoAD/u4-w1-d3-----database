@@ -37,22 +37,39 @@
 </html>
 
 <?php
-$halaman = 2; //batasan halaman
-$page = isset($_GET['halaman']) ? (int)$_GET["halaman"] : 1;
-$mulai = ($page > 1) ? ($page * $halaman) - $halaman : 0;
-$result = $db->query("SELECT * FROM kategori");
-$result->execute();
-$total = $result->fetchAll();
-$pages = ceil(count($total / $halaman));
-$query = $db->prepare("SELECT * FROM kategori LIMIT $mulai, $halaman");
-$query->execute();
-$data = $query->fetchAll();
-$no = $mulai + 1;
+$limit = 2;
+$query = "SELECT count(*) FROM kategori";
+
+$s = $db->query($query);
+$total_results = $s->fetchColumn();
+$total_pages = ceil($total_results / $limit);
+
+if (!isset($_GET['page'])) {
+    $page = 1;
+} else {
+    $page = $_GET['page'];
+}
+
+
+
+$starting_limit = ($page - 1) * $limit;
+$show  = "SELECT * FROM kategori ORDER BY id DESC LIMIT ?,?";
+
+$r = $db->prepare($show);
+$r->execute([$starting_limit, $limit]);
+
+while ($res = $r->fetch(PDO::FETCH_ASSOC)) :
 ?>
-<?php foreach ($data as $value) : ?>
-    <tr>
-        <td><?php echo $no++; ?></td>
-        <td><?php echo $value['nama_kat']; ?></td>
-    <?php
-endforeach;
-    ?>
+    <h4><?php echo $res['id']; ?></h4>
+    <p><?php echo $res['nama_kat']; ?></p>
+    <hr>
+<?php
+endwhile;
+
+
+for ($page = 1; $page <= $total_pages; $page++) : ?>
+
+    <a href='<?php echo "?page=$page"; ?>' class="links"><?php echo $page; ?>
+    </a>
+
+<?php endfor; ?>
