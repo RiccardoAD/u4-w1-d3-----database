@@ -35,3 +35,24 @@
 </body>
 
 </html>
+
+<?php
+$halaman = 2; //batasan halaman
+$page = isset($_GET['halaman']) ? (int)$_GET["halaman"] : 1;
+$mulai = ($page > 1) ? ($page * $halaman) - $halaman : 0;
+$result = $db->query("SELECT * FROM kategori");
+$result->execute();
+$total = $result->fetchAll();
+$pages = ceil(count($total / $halaman));
+$query = $db->prepare("SELECT * FROM kategori LIMIT $mulai, $halaman");
+$query->execute();
+$data = $query->fetchAll();
+$no = $mulai + 1;
+?>
+<?php foreach ($data as $value) : ?>
+    <tr>
+        <td><?php echo $no++; ?></td>
+        <td><?php echo $value['nama_kat']; ?></td>
+    <?php
+endforeach;
+    ?>
